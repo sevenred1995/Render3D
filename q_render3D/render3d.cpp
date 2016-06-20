@@ -160,7 +160,7 @@ void setMatrix(float pos,float theata)
 	Matrix4x4 rotate;
 	matrix_set_translate(&world, 0, 0, -0.5);
 	matrix_set_scale(&scale, 1.4, 1.4, 1.4);
-	matrix_set_rotate(&rotate, 0, PI*0.5, 0, theata);
+	matrix_set_rotate(&rotate, PI*0.5,0 , 0, theata);
 	Matrix4x4 m;
 	matrix4x4_mul(&m,&rotate, &world);
 	renderDevice->setWorldMatrix(m);
@@ -178,14 +178,14 @@ void setMatrix(float pos,float theata)
 int main()
 {
 	Vertex mesh[8] = {
-		{ { 1, -1,  1, 1 },{ 0,0,1 },{ 0, 0 },{ 1.0f, 0.2f, 0.2f }, 1 },//a 
-		{ { -1, -1,  1, 1 },{ 0,0,1 },{ 0, 1 },{ 0.2f, 1.0f, 0.2f }, 1 },//b
-		{ { -1,  1,  1, 1 },{ 0,0,1 },{ 1, 0 },{ 1.0f, 0.2f, 1.0f }, 1 },//d
-		{ { 1,  1,  1, 1 },{ 0,0,1 },{ 1, 1 },{ 0.2f, 0.2f, 1.0f }, 1 },//c
-		{ { 1, -1, -1, 1 },{ 0,0,1 },{ 0, 0 },{ 1.0f, 1.0f, 0.2f }, 1 },//e
-		{ { -1, -1, -1, 1 },{ 0,0,1 },{ 0, 1 },{ 0.2f, 1.0f, 1.0f }, 1 },//f
-		{ { -1,  1, -1, 1 },{ 0,0,1 },{ 1, 1 },{ 1.0f, 0.3f, 0.3f }, 1 },//g
-		{ { 1,  1, -1, 1 },{0,0,1 },{ 1, 0 },{ 0.2f, 1.0f, 0.3f }, 1 } //h
+		{ { 1, -1,  1, 1 },{  0,-1,0 },{ 0, 0 },{ 1.0f, 0.0f, 0.0f }, 1 },//a 
+		{ { -1, -1,  1, 1 },{ 0,-1,0 },{ 0, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//b
+		{ { -1,  1,  1, 1 },{ 0,1,0 },{ 1, 0 },{ 1.0f, 0.0f, 0.0f }, 1 },//d
+		{ { 1,  1,  1, 1 },{  0,1,0 },{ 1, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//c
+		{ { 1, -1, -1, 1 },{  0,-1,0 },{ 0, 0 },{ 1.0f, 0.0f, 0.0f }, 1 },//e
+		{ { -1, -1, -1, 1 },{ 0,-1,0 },{ 0, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//f
+		{ { -1,  1, -1, 1 },{ 0,1,0 },{ 1, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//g
+		{ { 1,  1, -1, 1 },{  0,1,0 },{ 1, 0 },{ 1.0f, 0.0f, 0.0f }, 1 } //h
 	};
 	renderInitData initData; 
 	initData.bufferWidth = 800;
@@ -279,6 +279,21 @@ int main()
 		if (window_keys[VK_DOWN]) pos += 0.1f;
 		if (window_keys[VK_LEFT])  alpha += 0.1f;
 		if (window_keys[VK_RIGHT]) alpha -= 0.1f;
+
+		DirectionalLight light;
+		light.ambient   = Vector3{ 0.2f,0.2f,0.2f };
+		light.diffuse   = Vector3{ 1.0f,0.3f,0.0f };
+		light.direction = Vector3{ -4,3,0 };
+		light.isEnabled = true;
+		light.mDiffuseInstensity = 1.0f;
+		
+		Material material;
+		material.ambient = { 1.0f,0.1f,0.1f };
+		material.diffuse = { 1.0f,1.0f,1.0f };
+
+		renderDevice->setLight(0, light);
+		renderDevice->setMaterial(material);
+		renderDevice->setLightingEnable(true);
 		renderDevice->drawTriangle(drawData,(int*)window_fb);
 		Sleep(1);
 	}

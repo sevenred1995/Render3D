@@ -163,12 +163,12 @@ Color IRenderPipelineDevice::vertexLighting(const Point vPosw, const Vector3 vNo
 				//if(没有纹理，将于材质进行颜色混合)
 				currentDiffuse = currentDiffuse*mMaterial.diffuse;	
 				//else 有纹理将在Pixelshader中进行混合
-				Vector3 reflectLightDir = vector3_reflect(lightDir, normal);
+				/*Vector3 reflectLightDir = vector3_reflect(lightDir, normal);
 				float specFactor = mLight[i].mSpeaularIntensity*
 					pow(max(vector3_dot(reflectLightDir, toEye), 0.0f), mMaterial.specularSmoothLev);
-				currentSpecular = specFactor* mMaterial.specular * mLight[i].specular;
+				currentSpecular = specFactor* mMaterial.specular * mLight[i].specular;*/
 			}
-			outColor = currentAmbient + currentDiffuse + currentSpecular;
+			outColor += (currentAmbient + currentDiffuse + currentSpecular);
 		}
 	}
 	return outColor;
@@ -429,9 +429,9 @@ void  IRenderPipelineDevice::trapinitScanline(Trape* trap, Scanline* scanline, i
 	scanline->v = trap->left.v;
 	if (trap->left.v.pos.x >= trap->right.v.pos.x) scanline->w = 0;
 	float inv = 1 / width;
-	scanline->step.pos =    (trap->right.v.pos - trap->left.v.pos)*inv;
-	scanline->step.color =  (trap->right.v.color - trap->left.v.color) *inv;
-	scanline->step.tex =    (trap->right.v.tex - trap->left.v.tex)*inv;
-	scanline->step.rhw =    (trap->right.v.rhw - trap->left.v.rhw)*inv;
+	scanline->step.pos   =    (trap->right.v.pos - trap->left.v.pos)*inv;
+	scanline->step.color =    (trap->right.v.color - trap->left.v.color) *inv;
+	scanline->step.tex   =    (trap->right.v.tex - trap->left.v.tex)*inv;
+	scanline->step.rhw   =    (trap->right.v.rhw - trap->left.v.rhw)*inv;
 }
 
