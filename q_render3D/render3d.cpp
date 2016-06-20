@@ -1,7 +1,7 @@
 #pragma once
 #include "IRenderPipelineDevice.h"
 #include <tchar.h>
-
+#include "FileLoader.h"
 #pragma region Winodw
 
 float width = 800.0f;
@@ -160,10 +160,10 @@ void setMatrix(float pos,float theata)
 	Matrix4x4 rotate;
 	matrix_set_translate(&world, 0, 0, -0.5);
 	matrix_set_scale(&scale, 1.4, 1.4, 1.4);
-	matrix_set_rotate(&rotate, PI*0.5, 0, 0, theata);
+	matrix_set_rotate(&rotate, 0, PI*0.5, 0, theata);
 	Matrix4x4 m;
 	matrix4x4_mul(&m,&rotate, &world);
-	renderDevice->setWorldMatrix(world);
+	renderDevice->setWorldMatrix(m);
 
 	Vector4 eye = { 0, 0, pos, 1 }, at = { 0, 0, 0, 1 }, up = { 0, 1, 0, 1 };
 	Matrix4x4 view;
@@ -172,26 +172,20 @@ void setMatrix(float pos,float theata)
 
 	Matrix4x4 proj;
 	float aspect = width / height;
-	matrix_set_perspective(&proj, PI*0.5f, aspect, 1.0f, 10000);
+	matrix_set_perspective(&proj, PI*0.5f, aspect, 1.0f, 500.0f);
 	renderDevice->setProjMatrix(proj);
 }
 int main()
 {
-	Vertex vert[4] = {
-		{ {  1,  1,  1, 1 },{0,0,1},{ 0, 0 },{ 1.0f, 0.4f, 0.4f }, 1 },
-		{ {  1, -1,  1, 1 },{0,0,1},{ 0, 1 },{ 0.0f, 0.0f, 1.0f }, 1 },
-		{ { -1,  1,  1, 1 },{0,0,1},{ 1, 1 },{ 0.0f, 0.8f, 0.0f }, 1 },
-		{ { -1,  -1, 1, 1 },{ 0,0,1 },{ 1, 1 },{ 0.0f, 0.8f, 0.0f }, 1 }
-	};
 	Vertex mesh[8] = {
-		{ {  1, -1,  1, 1 },{0,0,1 },{ 0, 0 },{ 1.0f, 0.2f, 0.2f }, 1 },
-		{ { -1, -1,  1, 1 },{0,0,1 },{ 0, 1 },{ 0.2f, 1.0f, 0.2f }, 1 },
-		{ { -1,  1,  1, 1 },{0,0,1 },{ 1, 1 },{ 0.2f, 0.2f, 1.0f }, 1 },
-		{ {  1,  1,  1, 1 },{0,0,1 },{ 1, 0 },{ 1.0f, 0.2f, 1.0f }, 1 },
-		{ {  1, -1, -1, 1 },{0,0,1 },{ 0, 0 },{ 1.0f, 1.0f, 0.2f }, 1 },
-		{ { -1, -1, -1, 1 },{0,0,1 },{ 0, 1 },{ 0.2f, 1.0f, 1.0f }, 1 },
-		{ { -1,  1, -1, 1 },{0,0,1 },{ 1, 1 },{ 1.0f, 0.3f, 0.3f }, 1 },
-		{ {  1,  1, -1, 1 },{0,0,1 },{ 1, 0 },{ 0.2f, 1.0f, 0.3f }, 1 } 
+		{ { 1, -1,  1, 1 },{ 0,0,1 },{ 0, 0 },{ 1.0f, 0.2f, 0.2f }, 1 },//a 
+		{ { -1, -1,  1, 1 },{ 0,0,1 },{ 0, 1 },{ 0.2f, 1.0f, 0.2f }, 1 },//b
+		{ { -1,  1,  1, 1 },{ 0,0,1 },{ 1, 0 },{ 1.0f, 0.2f, 1.0f }, 1 },//d
+		{ { 1,  1,  1, 1 },{ 0,0,1 },{ 1, 1 },{ 0.2f, 0.2f, 1.0f }, 1 },//c
+		{ { 1, -1, -1, 1 },{ 0,0,1 },{ 0, 0 },{ 1.0f, 1.0f, 0.2f }, 1 },//e
+		{ { -1, -1, -1, 1 },{ 0,0,1 },{ 0, 1 },{ 0.2f, 1.0f, 1.0f }, 1 },//f
+		{ { -1,  1, -1, 1 },{ 0,0,1 },{ 1, 1 },{ 1.0f, 0.3f, 0.3f }, 1 },//g
+		{ { 1,  1, -1, 1 },{0,0,1 },{ 1, 0 },{ 0.2f, 1.0f, 0.3f }, 1 } //h
 	};
 	renderInitData initData; 
 	initData.bufferWidth = 800;
@@ -200,27 +194,75 @@ int main()
 	initData.zBuffer     = new std::vector<float>(800*600);
 
 	DrawData drawData = {0};
-	drawData.vCount = 6;
+	drawData.vCount =8;
 	drawData.pIndexBuffer = new std::vector<unsigned int>();
 	drawData.pVertexBuffer = new std::vector<Vertex>();
 	drawData.pIndexBuffer->push_back(0);
 	drawData.pIndexBuffer->push_back(1);
 	drawData.pIndexBuffer->push_back(2);
+
+	drawData.pIndexBuffer->push_back(2);
 	drawData.pIndexBuffer->push_back(3);
+	drawData.pIndexBuffer->push_back(0);
+
+	drawData.pIndexBuffer->push_back(4);
+	drawData.pIndexBuffer->push_back(5);
+	drawData.pIndexBuffer->push_back(6);
+
+	drawData.pIndexBuffer->push_back(6);
+	drawData.pIndexBuffer->push_back(7);
+	drawData.pIndexBuffer->push_back(4);
+
+	drawData.pIndexBuffer->push_back(0);
 	drawData.pIndexBuffer->push_back(4);
 	drawData.pIndexBuffer->push_back(5);
 
-	drawData.pVertexBuffer->push_back(vert[0]);
-	drawData.pVertexBuffer->push_back(vert[1]);
-	drawData.pVertexBuffer->push_back(vert[2]);
-	drawData.pVertexBuffer->push_back(vert[1]);
-	drawData.pVertexBuffer->push_back(vert[2]);
-	drawData.pVertexBuffer->push_back(vert[3]);
-	
+	drawData.pIndexBuffer->push_back(5);
+	drawData.pIndexBuffer->push_back(1);
+	drawData.pIndexBuffer->push_back(0);
+
+	drawData.pIndexBuffer->push_back(1);
+	drawData.pIndexBuffer->push_back(5);
+	drawData.pIndexBuffer->push_back(6);
+
+	drawData.pIndexBuffer->push_back(6);
+	drawData.pIndexBuffer->push_back(2);
+	drawData.pIndexBuffer->push_back(1);
+
+	drawData.pIndexBuffer->push_back(2);
+	drawData.pIndexBuffer->push_back(6);
+	drawData.pIndexBuffer->push_back(7);
+
+	drawData.pIndexBuffer->push_back(7);
+	drawData.pIndexBuffer->push_back(3);
+	drawData.pIndexBuffer->push_back(2);
+
+	drawData.pIndexBuffer->push_back(3);
+	drawData.pIndexBuffer->push_back(7);
+	drawData.pIndexBuffer->push_back(4);
+
+	drawData.pIndexBuffer->push_back(4);
+	drawData.pIndexBuffer->push_back(0);
+	drawData.pIndexBuffer->push_back(3);
+
+	//drawData.pVertexBuffer->push_back(vert[0]);
+	//drawData.pVertexBuffer->push_back(vert[1]);
+	//drawData.pVertexBuffer->push_back(vert[2]);
+	//drawData.pVertexBuffer->push_back(vert[3]);
+	for (int i=0;i<8;i++)
+	{
+		drawData.pVertexBuffer->push_back(mesh[i]);
+	}
+
+
 	renderDevice = new IRenderPipelineDevice();
+	//FileLoader *file = new FileLoader();
+	//unsigned int w, h;
+	//std::vector<Vector3> cb;
+	//file->ImportTextureFromFile("", w, h, cb);
 
 	renderDevice->init(initData);
-	float pos = 2;
+	float pos = 4;
 	float alpha = 1;
 	setMatrix(pos,alpha);
 	TCHAR *title = _T("Render3d");
@@ -235,11 +277,11 @@ int main()
 		setBackGround(window_fb);
 		if (window_keys[VK_UP])   pos -= 0.1f;
 		if (window_keys[VK_DOWN]) pos += 0.1f;
-		if (window_keys[VK_LEFT])  alpha += 0.01f;
-		if (window_keys[VK_RIGHT]) alpha -= 0.01f;
+		if (window_keys[VK_LEFT])  alpha += 0.1f;
+		if (window_keys[VK_RIGHT]) alpha -= 0.1f;
 		renderDevice->drawTriangle(drawData,(int*)window_fb);
 		Sleep(1);
 	}
-
+	delete renderDevice;
 	return 0;
 }

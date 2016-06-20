@@ -15,7 +15,14 @@ IRenderPipelineDevice::IRenderPipelineDevice()
 }
 IRenderPipelineDevice::~IRenderPipelineDevice()
 {
-
+	std::vector<VertexShaderOut>(*m_vertex_homospace).swap(*m_vertex_homospace);
+	std::vector<VertexShaderOut>(*m_vertex_homospace_cliped).swap(*m_vertex_homospace_cliped);
+	std::vector<unsigned int>(*m_index_homospace_cliped).swap(*m_index_homospace_cliped);
+	std::vector<RasterizedFragment>(*m_rasterized).swap(*m_rasterized);
+	delete m_vertex_homospace;
+	delete m_vertex_homospace_cliped;
+	delete m_rasterized;
+	delete m_index_homospace_cliped;
 }
 bool  IRenderPipelineDevice::init(renderInitData data)
 {
@@ -84,7 +91,6 @@ void  IRenderPipelineDevice::drawTriangle(DrawData inData,int *ptr)
 	m_rasterized->clear();
 	zBuffer->clear();
 	zBuffer = new std::vector<float>(mBufferheight*mBufferwidth);
-
 	m_vertex_homospace->reserve(inData.vCount);
 	m_rasterized      ->reserve(mBufferheight*mBufferwidth);
 
@@ -111,6 +117,7 @@ void  IRenderPipelineDevice::vertexShader(Vertex& inVertex)
 	matrix4x4_mul(&transform_, &world, &view);
 	matrix4x4_mul(&transform2, &transform_,&projection);
 	vector4_matrix4x4(&projPos, pos, transform2);
+	
 	out.point.pos = projPos;//---->(x,y,z,w)-->(w=z);
 	Matrix4x4 worldmat_notrans = world;
 	
@@ -133,7 +140,37 @@ void  IRenderPipelineDevice::vertexShader(Vertex& inVertex)
 }
 Color IRenderPipelineDevice::vertexLighting(const Point vPosw, const Vector3 vNormalw)
 {
-	Color  outColor;
+	Color  outColor = {0,0,0};
+	for (int i = 0; i < c_maxLightCount; ++i)
+	{
+		if (mLight[i].isEnabled = true)
+		{
+			Vector3 lightDir = mLight[i].direction;
+			lightDir.normalize();
+			Vector4 toEye4 = cameraPos - vPosw;
+			Vector3 toEye(toEye4.x, toEye4.y, toEye4.z);
+			toEye.normalize();
+			Vector3 normal=vNormalw;
+			normal.normalize();
+			Vector3 currentAmbient = mMaterial.ambient*mLight[i].ambient*mMaterial.diffuse;
+			Vector3 currentDiffuse(0, 0, 0);
+			Vector3 currentSpecular = { 0,0,0 };
+			float diffuseFactor = mLight[i].mDiffuseInstensity*(max(0.0f,vector3_dot((-1)*lightDir, normal)));
+			if (diffuseFactor > 0.0f)
+			{
+				currentDiffuse = diffuseFactor*mLight[i].diffuse;
+				
+				//if(没有纹理，将于材质进行颜色混合)
+				currentDiffuse = currentDiffuse*mMaterial.diffuse;	
+				//else 有纹理将在Pixelshader中进行混合
+				Vector3 reflectLightDir = vector3_reflect(lightDir, normal);
+				float specFactor = mLight[i].mSpeaularIntensity*
+					pow(max(vector3_dot(reflectLightDir, toEye), 0.0f), mMaterial.specularSmoothLev);
+				currentSpecular = specFactor* mMaterial.specular * mLight[i].specular;
+			}
+			outColor = currentAmbient + currentDiffuse + currentSpecular;
+		}
+	}
 	return outColor;
 }
 void  IRenderPipelineDevice::homospaceClipedVertex(std::vector<unsigned int>* const pIndexs)
@@ -153,6 +190,8 @@ void  IRenderPipelineDevice::homospaceClipedTriangle(std::vector<unsigned int>* 
 		auto v1 = m_vertex_homospace_cliped->at(index1);
 		auto v2 = m_vertex_homospace_cliped->at(index2);
 		auto v3 = m_vertex_homospace_cliped->at(index3);
+
+
 		if (homospaceCheckCvv(&v1.point.pos) != 0 || homospaceCheckCvv(&v2.point.pos) != 0 || homospaceCheckCvv(&v3.point.pos))
 		{
 			unsigned int index = m_index_homospace_cliped->size() - 3;
@@ -165,7 +204,7 @@ void  IRenderPipelineDevice::homospaceClipedTriangle(std::vector<unsigned int>* 
 			}
 		}
 		else
-		i += 3;
+		  i += 3;
 	}
 }
 void  IRenderPipelineDevice::pixelShader(RasterizedFragment& inVertex, int *ptr)
@@ -197,9 +236,9 @@ void  IRenderPipelineDevice::RasterizeTrangles()
 		auto convertTopixelSpace = [&](const Vector4& v,Vector4& out)
 		{
 			//v.w='z'
-			float rhw = (float)(1.0 / v.w);
+			float rhw = (float)(1/v.w);
 			out.x = (v.x*rhw + 1.0f)*mBufferwidth*0.5f;
-			out.y = (1.0 - v.y*rhw)*mBufferheight*0.5f;
+			out.y = (1.0 - v.y*rhw) *mBufferheight*0.5f;
 			out.z = v.z*rhw;
 			out.w = 1;
 		};
@@ -228,10 +267,12 @@ void  IRenderPipelineDevice::RasterizeTrangles()
 		rhw_init(p3,v3.point.pos.w);
 
 		int n=trangleDevide(trap, p1, p2, p3);
-		if (n > 0)
-			rasterizeTrangle(&trap[0]);
-		if (n > 1)
-			rasterizeTrangle(&trap[1]);
+
+		//printf("%f--%f\n", trap[0].right.v2.pos.x,trap[1].right.v1.pos.x);
+	    
+		if (n >= 1)rasterizeTrangle(&trap[0]);
+	    if (n >= 2)rasterizeTrangle(&trap[1]);
+
 	}
 }
 void  IRenderPipelineDevice::RasterizePoint()
@@ -281,22 +322,23 @@ int   IRenderPipelineDevice::trangleDevide(Trape* trap,Vertex p1,Vertex p2,Verte
 	x = p1.pos.x + (p2.pos.x - p1.pos.x) * k;
 
 	if (x <= p3.pos.x) {		// triangle left
-		trap[0].left.v1 = p1;
-		trap[0].left.v2 = p2;
+		trap[0].left.v1  = p1;
+		trap[0].left.v2  = p2;
 		trap[0].right.v1 = p1;
 		trap[0].right.v2 = p3;
-		trap[1].left.v1 = p2;
-		trap[1].left.v2 = p3;
-		trap[1].right.v1 =p1;
+		trap[1].left.v1  = p2;
+		trap[1].left.v2  = p3;
+		trap[1].right.v1 = p1;
 		trap[1].right.v2 = p3;
 	}
 	else {					// triangle right
-		trap[0].left.v1 = p1;
-		trap[0].left.v2 = p3;
+		trap[0].left.v1  = p1;
+		trap[0].left.v2  = p3;
 		trap[0].right.v1 = p1;
 		trap[0].right.v2 = p2;
-		trap[1].left.v1 = p1;
-		trap[1].left.v2 = p3;
+
+		trap[1].left.v1  = p1;
+		trap[1].left.v2  = p3;
 		trap[1].right.v1 = p2;
 		trap[1].right.v2 = p3;
 	}
@@ -307,7 +349,7 @@ void  IRenderPipelineDevice::rasterizeTrangle(Trape *trap)
 	
 	Scanline scaline;
 	int j, top, bottom;
-	top = (int)(trap->top + 0.5f);
+	top    = (int)(trap->top + 0.5f);
 	bottom = (int)(trap->bottom + 0.5f);
 	for (j=top;j<bottom;++j)
 	{
@@ -320,6 +362,7 @@ void  IRenderPipelineDevice::rasterizeTrangle(Trape *trap)
 			trapinitScanline(trap, &scaline, j);
 			//绘制扫描线
 			int x = scaline.x;
+			//printf("%d\n", x);
 			int y = j;
 			int w = scaline.w;
 			int _width = mBufferwidth;
@@ -328,13 +371,13 @@ void  IRenderPipelineDevice::rasterizeTrangle(Trape *trap)
 				if (x > 0 && x < _width)
 				{
 					float rhw = scaline.v.rhw;
-					if (rhw >= zBuffer->at(y*mBufferwidth + x))
-					{
+				   if (rhw >= zBuffer->at(y*mBufferwidth + x))
+				   {
 						//设置缓存
 						zBuffer->at(y*mBufferwidth + x) = rhw;
-						float r = scaline.v.color.x*(1 / rhw);
+						float r = scaline.v.color.x *(1 / rhw);
 						float g = scaline.v.color.y *(1 / rhw);
-						float b = scaline.v.color.z*(1 / rhw);
+						float b = scaline.v.color.z *(1 / rhw);
 						int R = (int)(r * 255.0f);
 						int G = (int)(g * 255.0f);
 						int B = (int)(b * 255.0f);
@@ -364,16 +407,18 @@ void  IRenderPipelineDevice::trapedgeLerp(Trape* trap, float y)
 	float s2 = trap->right.v2.pos.y - trap->right.v1.pos.y;
 	float t1 = (y - trap->left.v1.pos.y) / s1;
 	float t2 = (y - trap->right.v1.pos.y) / s2;
-	vector4_lerp(&trap->left.v.pos, &trap->left.v1.pos, &trap->left.v2.pos, t1);//坐标插值
-	Vector2_lerp(&trap->left.v.tex, &trap->left.v1.tex, &trap->left.v2.tex, t1);
-	Vector3_lerp(&trap->left.v.color, &trap->left.v1.color, &trap->left.v2.color, t1);
+
+	vector4_lerp(&trap->left.v.pos,    &trap->left.v1.pos, &trap->left.v2.pos, t1);//坐标插值
+	Vector2_lerp(&trap->left.v.tex,    &trap->left.v1.tex, &trap->left.v2.tex, t1);
+	Vector3_lerp(&trap->left.v.color,  &trap->left.v1.color, &trap->left.v2.color, t1);
 	Vector3_lerp(&trap->left.v.normal, &trap->left.v1.normal, &trap->left.v2.normal, t1);
 	trap->left.v.rhw = lerp(trap->left.v1.rhw, trap->left.v2.rhw, t1);
-	vector4_lerp(&trap->right.v.pos, &trap->right.v1.pos, &trap->right.v2.pos, t1);//坐标插值
-	Vector2_lerp(&trap->right.v.tex, &trap->right.v1.tex, &trap->right.v2.tex, t1);
-	Vector3_lerp(&trap->right.v.color, &trap->right.v1.color, &trap->right.v2.color, t1);
-	Vector3_lerp(&trap->right.v.normal, &trap->right.v1.normal, &trap->right.v2.normal, t1);
-	trap->right.v.rhw = lerp(trap->right.v1.rhw, trap->right.v2.rhw, t1);
+
+	vector4_lerp(&trap->right.v.pos,    &trap->right.v1.pos,    &trap->right.v2.pos, t2);//坐标插值
+	Vector2_lerp(&trap->right.v.tex,    &trap->right.v1.tex,    &trap->right.v2.tex, t2);
+	Vector3_lerp(&trap->right.v.color,  &trap->right.v1.color,  &trap->right.v2.color,t2);
+	Vector3_lerp(&trap->right.v.normal, &trap->right.v1.normal, &trap->right.v2.normal,t2);
+	trap->right.v.rhw = lerp(trap->right.v1.rhw, trap->right.v2.rhw, t2);
 }
 void  IRenderPipelineDevice::trapinitScanline(Trape* trap, Scanline* scanline, int y)
 {
@@ -384,10 +429,9 @@ void  IRenderPipelineDevice::trapinitScanline(Trape* trap, Scanline* scanline, i
 	scanline->v = trap->left.v;
 	if (trap->left.v.pos.x >= trap->right.v.pos.x) scanline->w = 0;
 	float inv = 1 / width;
-	scanline->step.pos = (trap->right.v.pos - trap->left.v.pos)*inv;
-	scanline->step.color = (trap->right.v.color - trap->left.v.color) *inv;
-	scanline->step.tex = (trap->right.v.tex - trap->left.v.tex)*inv;
-	scanline->step.normal = (trap->right.v.normal - trap->left.v.normal)*inv;
-	scanline->step.rhw = (trap->right.v.rhw - trap->left.v.rhw)*inv;
+	scanline->step.pos =    (trap->right.v.pos - trap->left.v.pos)*inv;
+	scanline->step.color =  (trap->right.v.color - trap->left.v.color) *inv;
+	scanline->step.tex =    (trap->right.v.tex - trap->left.v.tex)*inv;
+	scanline->step.rhw =    (trap->right.v.rhw - trap->left.v.rhw)*inv;
 }
 

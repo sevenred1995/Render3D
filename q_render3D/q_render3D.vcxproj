@@ -146,11 +146,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FileLoader.cpp" />
     <ClCompile Include="IRenderPipelineDevice.cpp" />
     <ClCompile Include="render3d.cpp" />
     <ClCompile Include="RenderMath.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FileLoader.h" />
     <ClInclude Include="IRenderPipelineDevice.h" />
     <ClInclude Include="RenderMath.h" />
     <ClInclude Include="Types.h" />

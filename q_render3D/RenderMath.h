@@ -293,6 +293,16 @@ namespace Math
 		result->y = m.z*n.x - m.x*n.z;
 		result->z = m.x*n.y - m.y*n.x;
 	}
+	inline  float vector3_dot(const Vector3& m, const Vector3& n)
+	{
+		return m.x*n.x + m.y*n.y + m.z*n.z;
+	}
+	inline  Vector3 vector3_reflect(Vector3 lightDir, Vector3 normal)
+	{
+		Vector3 In = lightDir;
+		Vector3 Out = (-1)*In + 2 * (In - vector3_dot(In, normal) / In.length()*normal);
+		return Out;
+	}
 	inline	float vector4_dot(const Vector4& m, const Vector4& n)
 	{
 		return m.x*n.x + m.y*n.y + m.z*n.z;
@@ -454,5 +464,4 @@ inline	void matrix_set_perspective(Matrix4x4 *m, float fovy, float aspect, float
 		m->m[2][3] = 1;
 		m->m[3][2] = -zn * zf / (zf - zn);
 	}
-
 }

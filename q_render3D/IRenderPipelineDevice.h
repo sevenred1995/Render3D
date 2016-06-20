@@ -46,8 +46,9 @@ private:
 	Material  mMaterial;
 	static const UINT	c_maxLightCount = 8;
 	DirectionalLight    mLight[c_maxLightCount];
+	//TODO纹理
+
 	std::vector<Vertex> screenSpceVertex; //屏幕空间坐标顶点
-	
 	std::vector<VertexShaderOut>* m_vertex_homospace; //在裁剪空间中的顶点 此时-1<x<1 -1<y<1,0<z<1;
 	//裁剪顶点
 	void homospaceClipedVertex(std::vector<unsigned int>* const pIndexs);
