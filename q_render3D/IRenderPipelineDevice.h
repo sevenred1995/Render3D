@@ -36,6 +36,10 @@ private:
 	std::vector<float>* zBuffer;
 	std::vector<unsigned int>* m_pOutColorBuffer;//最终输出的像素颜色
 private:
+	float** mZbuffer;
+	unsigned int** m_pOutBuffer;
+	unsigned int** m_textureBuffer;
+private:
 	Matrix4x4 world;
 	Matrix4x4 view;
 	Matrix4x4 projection;
@@ -48,7 +52,7 @@ private:
 	DirectionalLight    mLight[c_maxLightCount];
 	//TODO纹理
 
-	std::vector<Vertex> screenSpceVertex; //屏幕空间坐标顶点
+//	std::vector<Vertex> screenSpceVertex; //屏幕空间坐标顶点
 	std::vector<VertexShaderOut>* m_vertex_homospace; //在裁剪空间中的顶点 此时-1<x<1 -1<y<1,0<z<1;
 	//裁剪顶点
 	void homospaceClipedVertex(std::vector<unsigned int>* const pIndexs);

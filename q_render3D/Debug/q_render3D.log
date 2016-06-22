@@ -1,1 +1,11 @@
-﻿  q_render3D.vcxproj -> E:\Code_Code\c++\渲染器\q_render3D\Debug\q_render3D.exe
+﻿  render3d.cpp
+e:\code_code\c++\渲染器\q_render3d\q_render3d\rendermath.h(4): warning C4305: “初始化”: 从“double”到“float”截断
+e:\code_code\c++\渲染器\q_render3d\q_render3d\rendermath.h(20): warning C4244: “return”: 从“double”转换到“float”，可能丢失数据
+e:\code_code\c++\渲染器\q_render3d\q_render3d\rendermath.h(80): warning C4244: “return”: 从“double”转换到“float”，可能丢失数据
+e:\code_code\c++\渲染器\q_render3d\q_render3d\types.h(45): warning C4244: “=”: 从“float”转换到“unsigned int”，可能丢失数据
+e:\code_code\c++\渲染器\q_render3d\q_render3d\render3d.cpp(58): warning C4838: 从“int”转换到“DWORD”需要收缩转换
+e:\code_code\c++\渲染器\q_render3d\q_render3d\render3d.cpp(163): warning C4305: “参数”: 从“double”到“float”截断
+e:\code_code\c++\渲染器\q_render3d\q_render3d\render3d.cpp(181): warning C4244: “初始化”: 从“float”转换到“unsigned int”，可能丢失数据
+e:\code_code\c++\渲染器\q_render3d\q_render3d\render3d.cpp(186): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
+e:\code_code\c++\渲染器\q_render3d\q_render3d\render3d.cpp(243): warning C4244: “=”: 从“float”转换到“unsigned int”，可能丢失数据
+  q_render3D.vcxproj -> E:\Code_Code\c++\渲染器\q_render3D\Debug\q_render3D.exe

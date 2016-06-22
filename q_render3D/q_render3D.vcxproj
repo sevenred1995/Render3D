@@ -147,13 +147,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FileLoader.cpp" />
+    <ClCompile Include="GeometryMeshGenerator.cpp" />
     <ClCompile Include="IRenderPipelineDevice.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="render3d.cpp" />
     <ClCompile Include="RenderMath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileLoader.h" />
+    <ClInclude Include="GeometryMeshGenerator.h" />
     <ClInclude Include="IRenderPipelineDevice.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="RenderMath.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>

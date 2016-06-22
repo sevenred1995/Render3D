@@ -91,6 +91,13 @@ namespace Math
 				x = y = z = 0.0f;
 			}
 		}
+		Vector3& operator=(const Vector3& vec)
+		{
+			x = vec.x;
+			y = vec.y;
+			z = vec.z;
+			return *this;
+		}
 		bool     operator==(const Vector3& vec)
 		{
 			return((x == vec.x) && (y == vec.y) && (z == vec.z));
@@ -289,6 +296,12 @@ namespace Math
 	inline	void  vector4_cross(Vector4* result, const Vector4& m, const Vector4& n)
 	{
 		result->w = 1.0f;
+		result->x = m.y*n.z - m.z*n.y;
+		result->y = m.z*n.x - m.x*n.z;
+		result->z = m.x*n.y - m.y*n.x;
+	}
+	inline void  vector3_cross(Vector3* result, const Vector3& m, const Vector3& n)
+	{
 		result->x = m.y*n.z - m.z*n.y;
 		result->y = m.z*n.x - m.x*n.z;
 		result->z = m.x*n.y - m.y*n.x;

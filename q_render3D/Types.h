@@ -76,6 +76,8 @@ typedef struct
 struct renderInitData 
 {
 	float bufferWidth, bufferHeight;
+	float** mZbuffer;
+	unsigned int** mFrameBuffer;
 	std::vector<float>*         zBuffer;
 	std::vector<unsigned int>*  framebuffer;
 };

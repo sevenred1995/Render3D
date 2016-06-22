@@ -2,6 +2,7 @@
 #include "IRenderPipelineDevice.h"
 #include <tchar.h>
 #include "FileLoader.h"
+#include "GeometryMeshGenerator.h"
 #pragma region Winodw
 
 float width = 800.0f;
@@ -175,92 +176,36 @@ void setMatrix(float pos,float theata)
 	matrix_set_perspective(&proj, PI*0.5f, aspect, 1.0f, 500.0f);
 	renderDevice->setProjMatrix(proj);
 }
+void initMem(renderInitData* initData,void *fp)
+{
+	unsigned int* ptr = new unsigned int(initData->bufferHeight*initData->bufferWidth);
+	unsigned int* frameBuffer=NULL;
+	frameBuffer = (unsigned int*)fp;
+	for (unsigned int j=0;j<initData->bufferHeight;j++)
+	{
+		int offset = j*(initData->bufferWidth);
+		initData->mFrameBuffer[j] = frameBuffer + offset;
+	}
+}
+#include <time.h>
 int main()
 {
-	Vertex mesh[8] = {
-		{ { 1, -1,  1, 1 },{  0,-1,0 },{ 0, 0 },{ 1.0f, 0.0f, 0.0f }, 1 },//a 
-		{ { -1, -1,  1, 1 },{ 0,-1,0 },{ 0, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//b
-		{ { -1,  1,  1, 1 },{ 0,1,0 },{ 1, 0 },{ 1.0f, 0.0f, 0.0f }, 1 },//d
-		{ { 1,  1,  1, 1 },{  0,1,0 },{ 1, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//c
-		{ { 1, -1, -1, 1 },{  0,-1,0 },{ 0, 0 },{ 1.0f, 0.0f, 0.0f }, 1 },//e
-		{ { -1, -1, -1, 1 },{ 0,-1,0 },{ 0, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//f
-		{ { -1,  1, -1, 1 },{ 0,1,0 },{ 1, 1 },{ 1.0f, 0.0f, 0.0f }, 1 },//g
-		{ { 1,  1, -1, 1 },{  0,1,0 },{ 1, 0 },{ 1.0f, 0.0f, 0.0f }, 1 } //h
-	};
 	renderInitData initData; 
 	initData.bufferWidth = 800;
 	initData.bufferHeight= 600;
 	initData.framebuffer = new std::vector<unsigned int>(800*600);
 	initData.zBuffer     = new std::vector<float>(800*600);
 
+
+	IGeometryMeshGenerator* g = new IGeometryMeshGenerator();
+
 	DrawData drawData = {0};
-	drawData.vCount =8;
 	drawData.pIndexBuffer = new std::vector<unsigned int>();
 	drawData.pVertexBuffer = new std::vector<Vertex>();
-	drawData.pIndexBuffer->push_back(0);
-	drawData.pIndexBuffer->push_back(1);
-	drawData.pIndexBuffer->push_back(2);
-
-	drawData.pIndexBuffer->push_back(2);
-	drawData.pIndexBuffer->push_back(3);
-	drawData.pIndexBuffer->push_back(0);
-
-	drawData.pIndexBuffer->push_back(4);
-	drawData.pIndexBuffer->push_back(5);
-	drawData.pIndexBuffer->push_back(6);
-
-	drawData.pIndexBuffer->push_back(6);
-	drawData.pIndexBuffer->push_back(7);
-	drawData.pIndexBuffer->push_back(4);
-
-	drawData.pIndexBuffer->push_back(0);
-	drawData.pIndexBuffer->push_back(4);
-	drawData.pIndexBuffer->push_back(5);
-
-	drawData.pIndexBuffer->push_back(5);
-	drawData.pIndexBuffer->push_back(1);
-	drawData.pIndexBuffer->push_back(0);
-
-	drawData.pIndexBuffer->push_back(1);
-	drawData.pIndexBuffer->push_back(5);
-	drawData.pIndexBuffer->push_back(6);
-
-	drawData.pIndexBuffer->push_back(6);
-	drawData.pIndexBuffer->push_back(2);
-	drawData.pIndexBuffer->push_back(1);
-
-	drawData.pIndexBuffer->push_back(2);
-	drawData.pIndexBuffer->push_back(6);
-	drawData.pIndexBuffer->push_back(7);
-
-	drawData.pIndexBuffer->push_back(7);
-	drawData.pIndexBuffer->push_back(3);
-	drawData.pIndexBuffer->push_back(2);
-
-	drawData.pIndexBuffer->push_back(3);
-	drawData.pIndexBuffer->push_back(7);
-	drawData.pIndexBuffer->push_back(4);
-
-	drawData.pIndexBuffer->push_back(4);
-	drawData.pIndexBuffer->push_back(0);
-	drawData.pIndexBuffer->push_back(3);
-
-	//drawData.pVertexBuffer->push_back(vert[0]);
-	//drawData.pVertexBuffer->push_back(vert[1]);
-	//drawData.pVertexBuffer->push_back(vert[2]);
-	//drawData.pVertexBuffer->push_back(vert[3]);
-	for (int i=0;i<8;i++)
-	{
-		drawData.pVertexBuffer->push_back(mesh[i]);
-	}
-
-
+	//g->createBox(4, 4, 4, 5, 5, 5, *drawData.pVertexBuffer, *drawData.pIndexBuffer);
+	g->creatSphere(2, 42, 42, false, *drawData.pVertexBuffer, *drawData.pIndexBuffer);
+	drawData.vCount = drawData.pVertexBuffer->size();
 	renderDevice = new IRenderPipelineDevice();
-	//FileLoader *file = new FileLoader();
-	//unsigned int w, h;
-	//std::vector<Vector3> cb;
-	//file->ImportTextureFromFile("", w, h, cb);
-
 	renderDevice->init(initData);
 	float pos = 4;
 	float alpha = 1;
@@ -280,23 +225,38 @@ int main()
 		if (window_keys[VK_LEFT])  alpha += 0.1f;
 		if (window_keys[VK_RIGHT]) alpha -= 0.1f;
 
+		//设置光照
 		DirectionalLight light;
 		light.ambient   = Vector3{ 0.2f,0.2f,0.2f };
-		light.diffuse   = Vector3{ 1.0f,0.3f,0.0f };
-		light.direction = Vector3{ -4,3,0 };
+		light.diffuse   = Vector3{ 0.1f,0.8f,0.0f };
+		light.direction = Vector3{ 4,-3,0 };
+		light.specular  = Vector3{ 0.1f,0.6f,0.1f };
+		light.mSpeaularIntensity =1.1f;
 		light.isEnabled = true;
 		light.mDiffuseInstensity = 1.0f;
 		
+		//设置材质
 		Material material;
 		material.ambient = { 1.0f,0.1f,0.1f };
 		material.diffuse = { 1.0f,1.0f,1.0f };
+		material.specular = { 1.0f,1.0f,1.0f };
+		material.specularSmoothLev = 1.0f;
 
 		renderDevice->setLight(0, light);
 		renderDevice->setMaterial(material);
-		renderDevice->setLightingEnable(true);
-		renderDevice->drawTriangle(drawData,(int*)window_fb);
+		renderDevice->setLightingEnable(true);//开启或
+		double dur;
+		clock_t start, end;
+		start = clock();
+		renderDevice->drawTriangle(drawData, (int*)window_fb);
+		end = clock();
+		dur = (double)(end - start);
+		printf("Use Time:%f\n", (dur / CLOCKS_PER_SEC));
+
 		Sleep(1);
 	}
+	
 	delete renderDevice;
+	delete g;
 	return 0;
 }
