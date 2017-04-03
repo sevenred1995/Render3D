@@ -4,9 +4,18 @@
 #include<vector>
 
 using namespace Math;
-typedef Vector4 Point;
+
+
+enum drawType
+{
+	DRAWFILE,//from file;
+	SPHERE,
+	BOX
+};
+
+typedef Vector4 QPoint;
 typedef Vector2 Texcoord;
-typedef Vector3 Color;
+typedef Vector3 QColor;
 
 struct DirectionalLight
 {
@@ -27,15 +36,15 @@ public:
 		}
 		return FALSE;
 	}
-	Vector3 ambient;
-	Vector3 diffuse;
-	Vector3 specular;
-	Vector3 direction;
+	Vector3 ambient;//环境光
+	Vector3 diffuse;//漫反射光
+	Vector3 specular;//镜面高光
+	Vector3 direction;//光照方向
 	float mSpeaularIntensity;
 	float mDiffuseInstensity;
 	bool isEnabled;
 };
-struct Material 
+struct Material
 {
 	Material()
 	{
@@ -49,12 +58,28 @@ struct Material
 	Vector3 specular;
 	unsigned int specularSmoothLev;
 };
+inline void computeDirectionalLight(
+	const Material& mat,
+	const DirectionalLight& L,
+	Vector3 normal,
+	Vector3 toEye,
+	Vector3& ambient,
+	Vector3& diffuse,
+	Vector3& spec)
+{
+
+
+
+}
+
+
+
 struct Vertex 
 { 
-	Point    pos; 
+	QPoint    pos; 
 	Vector3  normal; 
 	Texcoord tex; 
-	Color    color; 
+	QColor    QColor; 
 	float    rhw; 
 };
 
@@ -83,12 +108,12 @@ struct renderInitData
 };
 struct VertexShaderOut
 {
-	Vertex point;
+	Vertex QPoint;
 };
 struct RasterizedFragment
 {
 	int pixelX, pixelY;
-	int color;
+	int QColor;
 	Texcoord tex;
 };
 struct DrawData

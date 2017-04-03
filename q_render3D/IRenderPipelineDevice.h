@@ -1,5 +1,6 @@
 #pragma once
 #include "Types.h"
+#include "Texture2D.h"
 class IRenderPipelineDevice
 {
 public:
@@ -13,18 +14,22 @@ public:
 	void setLightingEnable(bool isEnable);
 	void setLight(int Index,const DirectionalLight& light);
 	void setMaterial(const Material& material);
-	void setTexture();
+	void setTexture(Texture2D* mTex);
 	void Present(int *ptr);
 public:
-	void drawPoint();      //绘制点
+	void drawQPoint();      //绘制点
 	void drawTriangle(DrawData inData,int* ptr);   //绘制三角形
 private:
-	void  vertexShader(Vertex& inVertex);//进行顶点变换
-	Color vertexLighting(const Point vPosw, const Vector3 vNormalw);//处理顶点光照
+	VertexShaderOut  VS(Vertex& inVertex);//进行顶点变换
+	QColor vertexLighting(const QPoint vPosw, const Vector3 vNormalw,	Vector3& ambient,
+		Vector3& diffuse,
+		Vector3& spec);//处理顶点光照
 	void  pixelShader(RasterizedFragment& inVertex, int *ptr);
-
-	void  RasterizeTrangles();
-	void  RasterizePoint();
+	QColor PS(VertexShaderOut vin);
+	void  RasterizeTrangles(VertexShaderOut o1,
+		VertexShaderOut o2,
+		VertexShaderOut o3);
+	void  RasterizeQPoint();
 	//三角形划分
 	int   trangleDevide(Trape* trap,Vertex p1,Vertex p2,Vertex p3);
 	void  rasterizeTrangle(Trape *trap);
@@ -34,7 +39,7 @@ private:
 	float mBufferwidth;
 	float mBufferheight;
 	std::vector<float>* zBuffer;
-	std::vector<unsigned int>* m_pOutColorBuffer;//最终输出的像素颜色
+	std::vector<unsigned int>* m_pOutQColorBuffer;//最终输出的像素颜色
 private:
 	float** mZbuffer;
 	unsigned int** m_pOutBuffer;
@@ -44,19 +49,16 @@ private:
 	Matrix4x4 view;
 	Matrix4x4 projection;
 	Matrix4x4 transform;
-
 	Vector4   cameraPos;
-	bool      mLightEnable;
-	Material  mMaterial;
+	bool                mLightEnable;
+	Material            mMaterial;
 	static const UINT	c_maxLightCount = 8;
 	DirectionalLight    mLight[c_maxLightCount];
-	//TODO纹理
-
-//	std::vector<Vertex> screenSpceVertex; //屏幕空间坐标顶点
-	std::vector<VertexShaderOut>* m_vertex_homospace; //在裁剪空间中的顶点 此时-1<x<1 -1<y<1,0<z<1;
+	//纹理
+	Texture2D* m_Texture;
+	std::vector<RasterizedFragment>* m_rasterized;
+private:
 	//裁剪顶点
-	void homospaceClipedVertex(std::vector<unsigned int>* const pIndexs);
-	void homospaceClipedTriangle(std::vector<unsigned int>* pIndex);
 	int  homospaceCheckCvv(const Vector4* pos)
 	{
 		float w = pos->w;
@@ -69,10 +71,6 @@ private:
 		if (pos->y >  w)   check |= 32;
 		return check;
 	}
-
-	std::vector<VertexShaderOut>* m_vertex_homospace_cliped;
-	std::vector<unsigned int>   * m_index_homospace_cliped;
-
-	std::vector<RasterizedFragment>* m_rasterized;
+	Vector3 sampleTexture(float x, float y);
 };
 

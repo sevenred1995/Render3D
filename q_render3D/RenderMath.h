@@ -238,7 +238,6 @@ namespace Math
 					m[row][i] = newRow[i];
 			}
 		};
-
 		inline void	setRow(unsigned int row, float(&&newRow)[4])
 		{
 			if (row < 4)
@@ -247,7 +246,6 @@ namespace Math
 					m[row][i] = newRow[i];
 			}
 		};
-
 		inline void	setColumn(unsigned int col, float newCol[4])
 		{
 			if (col < 4)
@@ -256,7 +254,6 @@ namespace Math
 					m[i][col] = newCol[i];
 			}
 		};
-
 		inline void	setColumn(unsigned int col, float(&&newCol)[4])
 		{
 			if (col < 4)
@@ -265,7 +262,6 @@ namespace Math
 					m[i][col] = newCol[i];
 			}
 		};
-
 		inline void setMatrix(Vector4(&&row)[4])
 		{
 			for (unsigned int i = 0; i < 4; ++i)
@@ -292,6 +288,31 @@ namespace Math
 		}
 		float m[4][4];
 	};
+
+	inline Matrix4x4 matrixTranspose(const Matrix4x4& mat) {
+		Matrix4x4 matTrans;
+		matTrans.m[0][0] = mat.m[0][0];
+		matTrans.m[0][1] = mat.m[1][0];
+		matTrans.m[0][2] = mat.m[2][0];
+		matTrans.m[0][3] = mat.m[3][0];
+
+		matTrans.m[1][0] = mat.m[0][1];
+		matTrans.m[1][1] = mat.m[1][1];
+		matTrans.m[1][2] = mat.m[2][1];
+		matTrans.m[1][3] = mat.m[3][1];
+
+		matTrans.m[2][0] = mat.m[0][2];
+		matTrans.m[2][1] = mat.m[1][2];
+		matTrans.m[2][2] = mat.m[2][2];
+		matTrans.m[2][3] = mat.m[3][2];
+
+		matTrans.m[3][0] = mat.m[0][3];
+		matTrans.m[3][1] = mat.m[1][3];
+		matTrans.m[3][2] = mat.m[2][3];
+		matTrans.m[3][3] = mat.m[3][3];
+
+		return matTrans;
+	}
 	//添加我们需要的一些数学运算
 	inline	void  vector4_cross(Vector4* result, const Vector4& m, const Vector4& n)
 	{
@@ -414,7 +435,7 @@ namespace Math
 	inline	void matrix_set_rotate(Matrix4x4 *m, float x, float y, float z, float theta) {
 		float qsin = (float)sin(theta * 0.5f);
 		float qcos = (float)cos(theta * 0.5f);
-		Vector4 vec = { x, y, z, 1.0f };
+		Vector4 vec={ x, y, z, 1.0f };
 		float w = qcos;
 		vec.normalize();
 		x = vec.x * qsin;

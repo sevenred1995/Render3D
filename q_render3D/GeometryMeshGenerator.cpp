@@ -1,7 +1,5 @@
 #include "GeometryMeshGenerator.h"
 
-
-
 IGeometryMeshGenerator::IGeometryMeshGenerator()
 {
 }
@@ -11,6 +9,44 @@ IGeometryMeshGenerator::~IGeometryMeshGenerator()
 {
 }
 
+bool IGeometryMeshGenerator::ImportFile_OBJ(std::string filePath, 
+	std::vector<Vertex>& refVertexBuffer, 
+	std::vector<UINT>& refIndexBuffer)
+{
+	std::ifstream fin(filePath);
+	if (!fin)return false;
+	UINT vcount = 0;
+	UINT tcount = 0;
+	std::string ignore;
+	fin >> ignore >> vcount;
+	fin >> ignore >> tcount;
+	fin >> ignore >> ignore >> ignore >> ignore;
+	Vector3 tempNormal;
+	Vertex  tempCompleteV;
+	for (UINT i = 0; i < vcount; i++) {
+		fin >> tempCompleteV.pos.x >> tempCompleteV.pos.y >> tempCompleteV.pos.z;
+		tempCompleteV.pos.w = 1;
+		fin >> tempNormal.x >> tempNormal.y >> tempNormal.z;
+		tempCompleteV.normal = tempNormal;
+		tempCompleteV.QColor = QColor{0.5,1,1};
+		refVertexBuffer.push_back(tempCompleteV);
+	}
+	fin >> ignore;
+	fin >> ignore;
+	fin >> ignore;
+	UINT IndexCount = 3 * tcount;
+	for (int i = 0; i < tcount; i++)
+	{
+		int a, b, c;
+		fin >> a >> b >> c;
+		refIndexBuffer.push_back(a);
+		refIndexBuffer.push_back(b);
+		refIndexBuffer.push_back(c);
+	}
+	fin.close();
+	return true;
+}
+
 void IGeometryMeshGenerator::createPlane(float width, float depth, unsigned int rowCnt, unsigned int columnCount, std::vector<Vertex>& outVerticeList, std::vector<unsigned int>& outIndicesList)
 {
 	buildQuad(Vector3(width / 2, 0, depth / 2),
@@ -18,7 +54,6 @@ void IGeometryMeshGenerator::createPlane(float width, float depth, unsigned int 
 		Vector3(0, 0, -depth / (float)(rowCnt - 1)),
 		rowCnt, columnCount, 0, outVerticeList, outIndicesList);
 }
-
 void IGeometryMeshGenerator::createBox(float width, float height, float depth, unsigned int depthStep, unsigned int widthStep, unsigned int heightStep, std::vector<Vertex>& outVerticeList, std::vector<unsigned int>& outIndicesList)
 {
 	int tempIndex;
@@ -106,7 +141,6 @@ void IGeometryMeshGenerator::createBox(float width, float height, float depth, u
 		outIndicesList
 	);
 }
-
 void IGeometryMeshGenerator::creatSphere(float radius, unsigned int columnCnt,
 	unsigned int iRingCnt,
 	bool bInvertNormal,
@@ -138,13 +172,10 @@ void IGeometryMeshGenerator::creatSphere(float radius, unsigned int columnCnt,
 		{
 			//the Y coord of  current ring 
 			tmpY = radius *sin(PI / 2 - (i + 1) *StepLength_AngleY);
-
 			////Pythagoras theorem(勾股定理)
 			tmpRingRadius = sqrtf(radius*radius - tmpY * tmpY);
-
 			////trigonometric function(三角函数)
 			tmpX = tmpRingRadius * cos(j*StepLength_AngleXZ);
-
 			//...
 			tmpZ = tmpRingRadius * sin(j*StepLength_AngleXZ);
 
@@ -164,7 +195,7 @@ void IGeometryMeshGenerator::creatSphere(float radius, unsigned int columnCnt,
 
 		tmpCompleteV.pos = tempV[i];
 		tmpCompleteV.normal = Vector3(tempV[i].x / radius, tempV[i].y / radius, tempV[i].z / radius);
-		tmpCompleteV.color = Vector3(tempV[i].x / radius, tempV[i].y / radius, tempV[i].z / radius);
+		tmpCompleteV.QColor = Vector3(tempV[i].x / radius, tempV[i].y / radius, tempV[i].z / radius);
 		tmpCompleteV.tex = tmpTexCoord[i];
 		if (bInvertNormal == TRUE)tmpCompleteV.normal = tmpCompleteV.normal*(-1);
 		outVerticeList.push_back(tmpCompleteV);
@@ -202,7 +233,7 @@ void IGeometryMeshGenerator::createCylinder(float radius, float height, unsigned
 
 inline void IGeometryMeshGenerator::buildQuad
        (
-		   Vector3 originPoint, Vector3 baseVector1, Vector3 baseVector2, 
+		   Vector3 originQPoint, Vector3 baseVector1, Vector3 baseVector2, 
 		   unsigned int stepCount1, unsigned stepCount2, UINT iBaseIndex, 
 		   std::vector<Vertex>& outVerticeList, 
 		   std::vector<unsigned int>& outIndicesList
@@ -210,16 +241,16 @@ inline void IGeometryMeshGenerator::buildQuad
 {
 	Vector3 tempNormal;
 	Vertex  tempCompleteV;
-	vector3_cross(&tempNormal, baseVector1, baseVector2);
+	vector3_cross(&tempNormal, baseVector1, baseVector2);//得到法线向量
 	tempNormal.normalize();
 	for (int i=0;i<stepCount1;i++)
 	{
 		for (int j=0;j<stepCount2;j++)
 		{
 			tempCompleteV.normal = tempNormal;
-			Vector3 pos= Vector3(originPoint + (float)i*baseVector1 + (float)j*baseVector2);
+			Vector3 pos= Vector3(originQPoint + (float)i*baseVector1 + (float)j*baseVector2);
 			tempCompleteV.pos   = Vector4(pos.x, pos.y, pos.z, 1.0f);
-			tempCompleteV.color = Vector3(((float)i / stepCount1), ((float)j / stepCount2), 0.5f);
+			tempCompleteV.QColor = Vector3(((float)i / stepCount1), ((float)j / stepCount2), 0.5f);
 			tempCompleteV.tex   = Vector2((float)i / (stepCount1 - 1), ((float)j / stepCount2));
 			outVerticeList.push_back(tempCompleteV);
 		}

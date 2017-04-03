@@ -149,16 +149,20 @@
     <ClCompile Include="FileLoader.cpp" />
     <ClCompile Include="GeometryMeshGenerator.cpp" />
     <ClCompile Include="IRenderPipelineDevice.cpp" />
+    <ClCompile Include="LightHelper.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="render3d.cpp" />
     <ClCompile Include="RenderMath.cpp" />
+    <ClCompile Include="Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileLoader.h" />
     <ClInclude Include="GeometryMeshGenerator.h" />
     <ClInclude Include="IRenderPipelineDevice.h" />
+    <ClInclude Include="LightHelper.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="RenderMath.h" />
+    <ClInclude Include="Texture2D.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
