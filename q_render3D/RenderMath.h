@@ -5,7 +5,6 @@ const float PI = 3.1415926;
 
 namespace Math
 {
-
 	struct Vector2
 	{
 		Vector2() {
@@ -286,8 +285,34 @@ namespace Math
 				setRow(2, { 0,0,0,0 });
 				setRow(3, { 0,0,0,0 });
 		}
+		Matrix4x4& operator*(const Matrix4x4& matr) {
+			Matrix4x4 z;
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					z.m[j][i] = (m[j][0] * matr.m[0][i]) +
+						(m[j][1] * matr.m[1][i]) +
+						(m[j][2] * matr.m[2][i]) +
+						(m[j][3] * matr.m[3][i]);
+				}
+			}
+			return z;
+		}
+
 		float m[4][4];
 	};
+
+	inline unsigned int ColorToUINT(Vector3 vec) {
+		int R = (int)(vec.x * 255.0f);
+		int G = (int)(vec.y * 255.0f);
+		int B = (int)(vec.z * 255.0f);
+		if (R < 0)R = 0; if (R > 255)R = 255;
+		if (G < 0)R = 0; if (G > 255)G = 255;
+		if (B < 0)R = 0; if (B > 255)B = 255;
+		unsigned int col = (R << 16) | (G << 8) | B;
+		return col;
+	}
 
 	inline Matrix4x4 matrixTranspose(const Matrix4x4& mat) {
 		Matrix4x4 matTrans;
@@ -387,10 +412,18 @@ namespace Math
 
 	}
 
-
+	inline float Clamp(float x, float min, float max)
+	{
+		if (x <= min)
+			return min;
+		else if (x >= max)
+			return max;
+		return x;
+	}
 	//¹âÕ¤»¯²åÖµ	
 	inline	float lerp(float x1,float x2,float t)
 	{
+
 		return x1+(x2-x1)*t;
 	}
 
@@ -498,4 +531,5 @@ inline	void matrix_set_perspective(Matrix4x4 *m, float fovy, float aspect, float
 		m->m[2][3] = 1;
 		m->m[3][2] = -zn * zf / (zf - zn);
 	}
+inline float convertToRadians(float fDegrees) { return fDegrees * (PI / 180.0f); }
 }

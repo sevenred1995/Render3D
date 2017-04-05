@@ -71,9 +71,6 @@ inline void computeDirectionalLight(
 
 
 }
-
-
-
 struct Vertex 
 { 
 	QPoint    pos; 
@@ -116,7 +113,7 @@ struct RasterizedFragment
 	int QColor;
 	Texcoord tex;
 };
-struct DrawData
+struct MeshData
 {
 	int vCount;
 	std::vector<Vertex>* pVertexBuffer;

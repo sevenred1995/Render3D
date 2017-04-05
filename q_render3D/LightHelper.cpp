@@ -9,4 +9,5 @@ LightHelper::LightHelper()
 
 LightHelper::~LightHelper()
 {
+
 }

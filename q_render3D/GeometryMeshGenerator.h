@@ -5,9 +5,13 @@
 class IGeometryMeshGenerator
 {
 public:
+	static IGeometryMeshGenerator* GetInstance()
+	{
+		static IGeometryMeshGenerator instance;
+		return &instance;
+	}
 	IGeometryMeshGenerator();
 	~IGeometryMeshGenerator();
-
 	bool ImportFile_OBJ(std::string filePath, std::vector<Vertex>& refVertexBuffer, std::vector<UINT>& refIndexBuffer);
 
 	void createPlane(float width, float height, unsigned int rowCnt,unsigned int columnCount,
